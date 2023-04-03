@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>FLUORTRONIX LIGHT CONTROLS</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+
+html {
+    font-family:'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;
+    display: inline-block;
+    text-align: center;
+  }
+  h1 {
+    font-size: 30px;
+    color: white;
+  }
+  p {
+    font-size: 1.4rem;
+  }
+  .topnav {
+    overflow: hidden;
+    background-color: #122e7d;
+  }
+  body {
+    margin: 0;
+  }
+  .content {
+    padding: 30px;
+  }
+  .card-grid {
+    max-width: 700px;
+    margin: 0 auto;
+    display: grid;
+    grid-gap: 2rem;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  }
+  .card {
+    background-color: white;
+    box-shadow: 2px 2px 12px 1px rgba(140,140,140,.5);
+  }
+  .card-title {
+    font-size: 1.2rem;
+    font-weight: bold;
+    color: #034078
+  }
+  .state {
+    font-size: 1.2rem;
+    color:#1282A2;
+  }
+  .slider {
+    -webkit-appearance: none;
+    margin: 0 auto;
+    width: 100%;
+    height: 15px;
+    border-radius: 10px;
+    background: #FFD65C;
+    outline: none;
+  }
+  .slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background: #034078;
+    cursor: pointer;
+  }
+  .slider::-moz-range-thumb {
+    width: 30px;
+    height: 30px;
+    border-radius: 50% ;
+    background: #034078;
+    cursor: pointer;
+  }
+  .switch {
+    padding-left: 5%;
+    padding-right: 5%;
+  }
+
+     </style>
+</head>
+<body>
+    <div class="topnav">
+        <h1>Spectrum Control Dashboard : MS1</h1>
+    </div>
+    <div class="content">
+        <div class="card-grid">
+            <div class="card">
+                <div style="width: 100%; height: 25px; background-color: white; border-bottom: black 1px solid;"></div>
+                <p class="card-title">Cool White</p>
+                <p class="switch">
+                    <input type="range" onchange="updateSliderPWM(this)" id="slider1" min="0" max="100" step="1" value ="0" class="slider">
+                </p>
+                <p class="state">Intensity: <span id="sliderValue1"></span> &percnt;</p>
+            </div>
+            <div class="card">
+                <div style="width: 100%; height: 25px; background-color: #e7b00c;"></div>
+                <p class="card-title"> Warm White</p>
+                <p class="switch">
+                    <input type="range" onchange="updateSliderPWM(this)" id="slider2" min="0" max="100" step="1" value ="0" class="slider">
+                </p>
+                <p class="state">Intensity: <span id="sliderValue2"></span> &percnt;</p>
+            </div>
+            <div class="card">
+                <div style="width: 100%; height: 25px; background-color: red;"></div>
+                <p class="card-title"> Red</p>
+                <p class="switch">
+                    <input type="range" onchange="updateSliderPWM(this)" id="slider3" min="0" max="100" step="1" value ="0" class="slider">
+                </p>
+                <p class="state">Intensity: <span id="sliderValue3"></span> &percnt;</p>
+            </div>
+        </div>
+    </div>
+    <div class="content">
+        <div class="card-grid">
+            <div class="card"> 
+                <div style="width: 100%; height: 25px; background-color: blue;"></div>
+                <p class="card-title">Blue</p>
+                <p class="switch">
+                    <input type="range" onchange="updateSliderPWM(this)" id="slider4" min="0" max="100" step="1" value ="0" class="slider">
+                </p>
+                <p class="state">Intensity: <span id="sliderValue4"></span> &percnt;</p>
+            </div>
+            <div class="card">
+                <div style="width: 100%; height: 25px; background-color: #8f66ff;"></div>
+                <p class="card-title"> UV</p>
+                <p class="switch">
+                    <input type="range" onchange="updateSliderPWM(this)" id="slider5" min="0" max="100" step="1" value ="0" class="slider">
+                </p>
+                <p class="state">Intensity: <span id="sliderValue5"></span> &percnt;</p>
+            </div>
+            <div class="card">
+                <div style="width: 100%; height: 25px; background-color: rgb(255, 153, 153);"></div>
+                <p class="card-title"> FarRED</p>
+                <p class="switch">
+                    <input type="range" onchange="updateSliderPWM(this)" id="slider6" min="0" max="100" step="1" value ="0" class="slider">
+                </p>
+                <p class="state">Intensity: <span id="sliderValue6"></span> &percnt;</p>
+            </div>
+        </div>
+    </div>
+    <script>
+
+
+var gateway = `ws://${window.location.hostname}/ws`;
+var websocket;
+window.addEventListener('load', onload);
+
+function onload(event) {
+    initWebSocket();
+}
+
+function getValues(){
+    websocket.send("getValues");
+}
+
+function initWebSocket() {
+    console.log('Trying to open a WebSocket connection…');
+    websocket = new WebSocket(gateway);
+    websocket.onopen = onOpen;
+    websocket.onclose = onClose;
+    websocket.onmessage = onMessage;
+}
+
+function onOpen(event) {
+    console.log('Connection opened');
+    getValues();
+}
+
+function onClose(event) {
+    console.log('Connection closed');
+    setTimeout(initWebSocket, 2000);
+}
+
+function updateSliderPWM(element) {
+    var sliderNumber = element.id.charAt(element.id.length-1);
+    var sliderValue = document.getElementById(element.id).value;
+    document.getElementById("sliderValue"+sliderNumber).innerHTML = sliderValue;
+    console.log(sliderValue);
+    websocket.send(sliderNumber+"s"+sliderValue.toString());
+}
+
+function onMessage(event) {
+    console.log(event.data);
+    var myObj = JSON.parse(event.data);
+    var keys = Object.keys(myObj);
+
+    for (var i = 0; i < keys.length; i++){
+        var key = keys[i];
+        document.getElementById(key).innerHTML = myObj[key];
+        document.getElementById("slider"+ (i+1).toString()).value = myObj[key];
+    }
+}
+
+    </script>
+</body>
+</html>
